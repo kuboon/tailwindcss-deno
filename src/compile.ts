@@ -1,4 +1,5 @@
-import { dirname, toFileUrl } from "@std/path"
+import { dirname } from "@std/path"
+import { toFileUrl } from "@std/path/to-file-url"
 import { Workspace, ResolutionMode } from "@deno/loader"
 import { getModuleDependencies } from "./get-module-dependencies.ts"
 import { rewriteUrls } from "./urls.ts"
