@@ -44,11 +44,11 @@ export class Instrumentation implements Disposable {
     // Create the timer if it doesn't exist yet
     this.#timers.get(id)
 
-    this.#timerStack.push({ id, label, namespace, value: performance.now() * 1_000_000n })
+    this.#timerStack.push({ id, label, namespace, value: BigInt(Math.floor(performance.now() * 1_000_000)) })
   }
 
   end(label: string) {
-    const end = performance.now() * 1_000_000n
+    const end = BigInt(Math.floor(performance.now() * 1_000_000))
 
     if (this.#timerStack[this.#timerStack.length - 1].label !== label) {
       throw new Error(
