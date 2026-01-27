@@ -19,6 +19,14 @@ class DefaultMap<K, V> extends Map<K, V> {
   }
 }
 
+/**
+ * Convert performance.now() timestamp to nanoseconds as BigInt
+ * for high-precision timing measurements
+ */
+function performanceNow(): bigint {
+  return BigInt(Math.floor(performance.now() * 1_000_000))
+}
+
 export class Instrumentation implements Disposable {
   #hits = new DefaultMap(() => ({ value: 0 }))
   #timers = new DefaultMap(() => ({ value: 0n }))
@@ -44,11 +52,11 @@ export class Instrumentation implements Disposable {
     // Create the timer if it doesn't exist yet
     this.#timers.get(id)
 
-    this.#timerStack.push({ id, label, namespace, value: BigInt(Math.floor(performance.now() * 1_000_000)) })
+    this.#timerStack.push({ id, label, namespace, value: performanceNow() })
   }
 
   end(label: string) {
-    const end = BigInt(Math.floor(performance.now() * 1_000_000))
+    const end = performanceNow()
 
     if (this.#timerStack[this.#timerStack.length - 1].label !== label) {
       throw new Error(

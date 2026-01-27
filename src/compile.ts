@@ -89,22 +89,62 @@ async function ensureSourceDetectionRootExists(compiler: {
 }
 
 // Placeholder compile functions - would integrate with actual tailwindcss
+/**
+ * Compiles a Tailwind CSS AST with the given options.
+ * 
+ * NOTE: This is a placeholder implementation. For full functionality,
+ * this needs to be integrated with the actual tailwindcss package's compileAst function.
+ * The real implementation would parse and compile the AST into a working compiler instance.
+ * 
+ * @param ast - The AST nodes to compile
+ * @param options - Compilation options
+ * @returns A compiler instance (currently a stub)
+ */
 export async function compileAst(ast: any[], options: CompileOptions) {
-  // TODO: Integrate with actual tailwindcss compileAst
+  // TODO: Integrate with actual tailwindcss compileAst when tailwindcss is available
+  // This requires importing from tailwindcss package and calling:
+  // const compiler = await _compileAst(ast, createCompileOptions(options))
+  console.warn("compileAst: Using placeholder implementation. Integrate with tailwindcss package for full functionality.")
   const compiler = { root: "none" } as any
   await ensureSourceDetectionRootExists(compiler)
   return compiler
 }
 
+/**
+ * Compiles Tailwind CSS from a string with the given options.
+ * 
+ * NOTE: This is a placeholder implementation. For full functionality,
+ * this needs to be integrated with the actual tailwindcss package's compile function.
+ * The real implementation would parse CSS and return a working compiler instance.
+ * 
+ * @param css - The CSS string to compile
+ * @param options - Compilation options
+ * @returns A compiler instance (currently a stub)
+ */
 export async function compile(css: string, options: CompileOptions) {
-  // TODO: Integrate with actual tailwindcss compile
+  // TODO: Integrate with actual tailwindcss compile when tailwindcss is available
+  // This requires importing from tailwindcss package and calling:
+  // const compiler = await _compile(css, createCompileOptions(options))
+  console.warn("compile: Using placeholder implementation. Integrate with tailwindcss package for full functionality.")
   const compiler = { root: "none" } as any
   await ensureSourceDetectionRootExists(compiler)
   return compiler
 }
 
+/**
+ * Loads a design system from CSS (unstable API).
+ * 
+ * NOTE: This is a placeholder implementation. For full functionality,
+ * this needs to be integrated with the actual tailwindcss package.
+ * 
+ * @param css - The CSS string containing design system definitions
+ * @param options - Load options including base path
+ * @returns A design system object (currently a stub)
+ */
 export async function __unstable__loadDesignSystem(css: string, { base }: { base: string }) {
   // TODO: Integrate with actual tailwindcss __unstable__loadDesignSystem
+  // This requires importing from tailwindcss package and calling the real implementation
+  console.warn("__unstable__loadDesignSystem: Using placeholder implementation. Integrate with tailwindcss package for full functionality.")
   return {} as any
 }
 
