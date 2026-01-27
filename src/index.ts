@@ -1,12 +1,12 @@
-import * as env from "./env.ts"
+import * as env from "./env.ts";
 
 // Export all modules
-export * from "./compile.ts"
-export * from "./instrumentation.ts"
-export * from "./normalize-path.ts"
-export * from "./optimize.ts"
-export * from "./source-maps.ts"
-export { env }
+export * from "./compile.ts";
+export * from "./instrumentation.ts";
+export * from "./normalize-path.ts";
+export * from "./optimize.ts";
+export * from "./source-maps.ts";
+export { env };
 
 // Note: Deno doesn't need module registration hooks like Node.js
 // Module loading is handled natively by Deno's runtime

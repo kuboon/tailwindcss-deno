@@ -1,4 +1,4 @@
-import { dirname, extname, resolve } from "@std/path"
+import { dirname, extname, resolve } from "@std/path";
 
 // Patterns we use to match dependencies in a file whether in CJS, ESM, or TypeScript
 const DEPENDENCY_PATTERNS = [
@@ -6,7 +6,7 @@ const DEPENDENCY_PATTERNS = [
   /import[\s\S]*from[\s\S]*?['"](.{3,}?)['"]/gi,
   /export[\s\S]*from[\s\S]*?['"](.{3,}?)['"]/gi,
   /require\(['"`](.+)['"`]\)/gi,
-]
+];
 
 // Given the current file `a.ts`, we want to make sure that when importing `b` that we resolve
 // `b.ts` before `b.js`
@@ -18,18 +18,41 @@ const DEPENDENCY_PATTERNS = [
 //   c // .ts
 // a.js
 //   b // .js or .ts
-const JS_EXTENSIONS = [".js", ".cjs", ".mjs"]
-const JS_RESOLUTION_ORDER = ["", ".js", ".cjs", ".mjs", ".ts", ".cts", ".mts", ".jsx", ".tsx"]
-const TS_RESOLUTION_ORDER = ["", ".ts", ".cts", ".mts", ".tsx", ".js", ".cjs", ".mjs", ".jsx"]
+const JS_EXTENSIONS = [".js", ".cjs", ".mjs"];
+const JS_RESOLUTION_ORDER = [
+  "",
+  ".js",
+  ".cjs",
+  ".mjs",
+  ".ts",
+  ".cts",
+  ".mts",
+  ".jsx",
+  ".tsx",
+];
+const TS_RESOLUTION_ORDER = [
+  "",
+  ".ts",
+  ".cts",
+  ".mts",
+  ".tsx",
+  ".js",
+  ".cjs",
+  ".mjs",
+  ".jsx",
+];
 
-async function resolveWithExtension(file: string, extensions: string[]): Promise<string | null> {
+async function resolveWithExtension(
+  file: string,
+  extensions: string[],
+): Promise<string | null> {
   // Try to find `./a.ts`, `./a.cts`, ... from `./a`
   for (const ext of extensions) {
-    const full = `${file}${ext}`
+    const full = `${file}${ext}`;
 
     try {
-      const stats = await Deno.stat(full)
-      if (stats.isFile) return full
+      const stats = await Deno.stat(full);
+      if (stats.isFile) return full;
     } catch {
       // File doesn't exist, continue
     }
@@ -37,17 +60,17 @@ async function resolveWithExtension(file: string, extensions: string[]): Promise
 
   // Try to find `./a/index.js` from `./a`
   for (const ext of extensions) {
-    const full = `${file}/index${ext}`
+    const full = `${file}/index${ext}`;
 
     try {
-      await Deno.stat(full)
-      return full
+      await Deno.stat(full);
+      return full;
     } catch {
       // File doesn't exist, continue
     }
   }
 
-  return null
+  return null;
 }
 
 async function traceDependencies(
@@ -57,35 +80,40 @@ async function traceDependencies(
   ext: string,
 ): Promise<void> {
   // Try to find the file
-  const extensions = JS_EXTENSIONS.includes(ext) ? JS_RESOLUTION_ORDER : TS_RESOLUTION_ORDER
-  const absoluteFile = await resolveWithExtension(resolve(base, filename), extensions)
-  if (absoluteFile === null) return // File doesn't exist
+  const extensions = JS_EXTENSIONS.includes(ext)
+    ? JS_RESOLUTION_ORDER
+    : TS_RESOLUTION_ORDER;
+  const absoluteFile = await resolveWithExtension(
+    resolve(base, filename),
+    extensions,
+  );
+  if (absoluteFile === null) return; // File doesn't exist
 
   // Prevent infinite loops when there are circular dependencies
-  if (seen.has(absoluteFile)) return // Already seen
+  if (seen.has(absoluteFile)) return; // Already seen
 
   // Mark the file as a dependency
-  seen.add(absoluteFile)
+  seen.add(absoluteFile);
 
   // Resolve new base for new imports/requires
-  base = dirname(absoluteFile)
-  ext = extname(absoluteFile)
+  base = dirname(absoluteFile);
+  ext = extname(absoluteFile);
 
-  const contents = await Deno.readTextFile(absoluteFile)
+  const contents = await Deno.readTextFile(absoluteFile);
 
   // Recursively trace dependencies in parallel
-  const promises = []
+  const promises = [];
 
   for (const pattern of DEPENDENCY_PATTERNS) {
     for (const match of contents.matchAll(pattern)) {
       // Bail out if it's not a relative file
-      if (!match[1].startsWith(".")) continue
+      if (!match[1].startsWith(".")) continue;
 
-      promises.push(traceDependencies(seen, match[1], base, ext))
+      promises.push(traceDependencies(seen, match[1], base, ext));
     }
   }
 
-  await Promise.all(promises)
+  await Promise.all(promises);
 }
 
 /**
@@ -93,16 +121,18 @@ async function traceDependencies(
  *
  * The result is an unordered set of absolute file paths. Meaning that the order
  * is not guaranteed to be equal to source order or across runs.
- **/
-export async function getModuleDependencies(absoluteFilePath: string): Promise<string[]> {
-  const seen = new Set<string>()
+ */
+export async function getModuleDependencies(
+  absoluteFilePath: string,
+): Promise<string[]> {
+  const seen = new Set<string>();
 
   await traceDependencies(
     seen,
     absoluteFilePath,
     dirname(absoluteFilePath),
     extname(absoluteFilePath),
-  )
+  );
 
-  return Array.from(seen)
+  return Array.from(seen);
 }

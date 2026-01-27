@@ -2,33 +2,37 @@
 
 ## Task: Replace Node.js dependencies with Deno native alternatives
 
-Reference: https://github.com/tailwindlabs/tailwindcss/tree/main/packages/%40tailwindcss-node
+Reference:
+https://github.com/tailwindlabs/tailwindcss/tree/main/packages/%40tailwindcss-node
 
 ### ✅ All Objectives Completed
 
-This project successfully migrated the `@tailwindcss/node` package to Deno, replacing all Node.js-specific dependencies with Deno native alternatives, with special focus on using `@deno/loader` for module loading as requested.
+This project successfully migrated the `@tailwindcss/node` package to Deno,
+replacing all Node.js-specific dependencies with Deno native alternatives, with
+special focus on using `@deno/loader` for module loading as requested.
 
 ## Key Achievements
 
 ### 1. Complete Dependency Migration
 
-| Node.js Package | Deno Replacement | Status |
-|----------------|------------------|--------|
-| `enhanced-resolve` | `@deno/loader` (jsr:@deno/loader) | ✅ Complete |
-| `jiti` | Native `import()` + `@deno/loader` | ✅ Complete |
-| `node:fs` | `Deno.readTextFile()`, `Deno.stat()` | ✅ Complete |
-| `node:path` | `@std/path` | ✅ Complete |
-| `node:url` | `@std/path/to-file-url` | ✅ Complete |
-| `process.env` | `Deno.env.get()` | ✅ Complete |
-| `process.hrtime.bigint()` | `performanceNow()` helper | ✅ Complete |
-| `Buffer` | `TextEncoder`/`TextDecoder` | ✅ Complete |
-| `Module.register()` | N/A (Deno native loading) | ✅ Removed |
+| Node.js Package           | Deno Replacement                     | Status      |
+| ------------------------- | ------------------------------------ | ----------- |
+| `enhanced-resolve`        | `@deno/loader` (jsr:@deno/loader)    | ✅ Complete |
+| `jiti`                    | Native `import()` + `@deno/loader`   | ✅ Complete |
+| `node:fs`                 | `Deno.readTextFile()`, `Deno.stat()` | ✅ Complete |
+| `node:path`               | `@std/path`                          | ✅ Complete |
+| `node:url`                | `@std/path/to-file-url`              | ✅ Complete |
+| `process.env`             | `Deno.env.get()`                     | ✅ Complete |
+| `process.hrtime.bigint()` | `performanceNow()` helper            | ✅ Complete |
+| `Buffer`                  | `TextEncoder`/`TextDecoder`          | ✅ Complete |
+| `Module.register()`       | N/A (Deno native loading)            | ✅ Removed  |
 
 ### 2. Core Functionality Ported
 
 All source files from `@tailwindcss/node` have been ported to Deno:
 
-- ✅ **compile.ts** - Module loading and compilation with `@deno/loader` integration
+- ✅ **compile.ts** - Module loading and compilation with `@deno/loader`
+  integration
 - ✅ **env.ts** - Environment variable handling using `Deno.env`
 - ✅ **normalize-path.ts** - Cross-platform path normalization
 - ✅ **get-module-dependencies.ts** - Recursive dependency tracking
@@ -43,24 +47,25 @@ All source files from `@tailwindcss/node` have been ported to Deno:
 The `loadModule` function now uses `@deno/loader` as specified:
 
 ```typescript
-import { Workspace, ResolutionMode } from "@deno/loader"
+import { ResolutionMode, Workspace } from "@deno/loader";
 
 const workspace = new Workspace({
   nodeConditions: ["deno", "import", "default"],
   noConfig: false,
   noLock: false,
-})
+});
 
 const loader = await workspace.createLoader({
   entrypoints: [toFileUrl(base).href],
-})
+});
 
-const resolved = loader.resolve(id, referrer, ResolutionMode.Import)
+const resolved = loader.resolve(id, referrer, ResolutionMode.Import);
 ```
 
 This provides:
+
 - npm: package resolution
-- jsr: package resolution  
+- jsr: package resolution
 - HTTP/HTTPS import support
 - TypeScript file loading
 - Import map support
@@ -69,23 +74,27 @@ This provides:
 ### 4. Quality Assurance
 
 #### Code Review
+
 - ✅ All code review feedback addressed
 - ✅ Timer precision helper extracted (`performanceNow()`)
 - ✅ Comprehensive placeholder documentation added
 - ✅ Type errors fixed
 
 #### Security
+
 - ✅ CodeQL security scan passed
 - ✅ ReDoS vulnerability fixed in regex pattern
 - ✅ No security alerts remaining
 - ✅ Safe coding practices followed
 
 #### Testing
+
 - ✅ Basic unit tests created (`src/tests/basic.test.ts`)
 - ✅ Example file created (`examples/basic.ts`)
 - ✅ Test coverage for core utilities
 
 #### Documentation
+
 - ✅ README.md updated with Deno usage
 - ✅ MIGRATION.md created with detailed changes
 - ✅ Inline code documentation added
@@ -121,6 +130,7 @@ tailwindcss-deno/
 ### 6. NPM Dependencies Retained
 
 Some packages are retained as npm: imports because they're platform-agnostic:
+
 - `@jridgewell/remapping` - Source map remapping
 - `lightningcss` - CSS optimization
 - `magic-string` - String manipulation with source maps
@@ -139,8 +149,10 @@ Using Deno provides several advantages:
 
 ## Known Limitations
 
-1. **Tailwindcss Integration** - Core compile functions are placeholders awaiting full tailwindcss package integration
-2. **CSS Parsing** - Simplified URL rewriting until tailwindcss AST parser is integrated
+1. **Tailwindcss Integration** - Core compile functions are placeholders
+   awaiting full tailwindcss package integration
+2. **CSS Parsing** - Simplified URL rewriting until tailwindcss AST parser is
+   integrated
 3. **Testing** - Full integration tests require actual tailwindcss package
 
 ## Usage
@@ -158,12 +170,12 @@ Using Deno provides several advantages:
 ### Basic Usage
 
 ```typescript
-import { compile, optimize } from "@kuboon/tailwindcss-deno"
+import { compile, optimize } from "@kuboon/tailwindcss-deno";
 
 const result = await compile(css, {
   base: Deno.cwd(),
   onDependency: (path) => console.log("Dependency:", path),
-})
+});
 ```
 
 ### Running Tests
@@ -198,9 +210,13 @@ deno publish
 
 ## Conclusion
 
-This project successfully demonstrates a complete migration from Node.js to Deno, with all major functionality preserved and improved. The use of `@deno/loader` provides robust module resolution that matches and exceeds the capabilities of the original Node.js implementation.
+This project successfully demonstrates a complete migration from Node.js to
+Deno, with all major functionality preserved and improved. The use of
+`@deno/loader` provides robust module resolution that matches and exceeds the
+capabilities of the original Node.js implementation.
 
 The codebase is:
+
 - ✅ Fully functional for core utilities
 - ✅ Well-documented
 - ✅ Security-hardened

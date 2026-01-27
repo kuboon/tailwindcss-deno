@@ -1,22 +1,22 @@
 // Deno native environment variable access
-export const DEBUG = resolveDebug(Deno.env.get("DEBUG"))
+export const DEBUG = resolveDebug(Deno.env.get("DEBUG"));
 
 function resolveDebug(debug: string | undefined): boolean {
   if (typeof debug === "boolean") {
-    return debug
+    return debug;
   }
 
   if (debug === undefined) {
-    return false
+    return false;
   }
 
   // Environment variables are strings, so convert to boolean
   if (debug === "true" || debug === "1") {
-    return true
+    return true;
   }
 
   if (debug === "false" || debug === "0") {
-    return false
+    return false;
   }
 
   // Keep the debug convention into account:
@@ -26,20 +26,20 @@ function resolveDebug(debug: string | undefined): boolean {
   // DEBUG=projectA,-projectB -> This enables debug for projectA and explicitly disables it for projectB
 
   if (debug === "*") {
-    return true
+    return true;
   }
 
-  let debuggers = debug.split(",").map((d) => d.split(":")[0])
+  let debuggers = debug.split(",").map((d) => d.split(":")[0]);
 
   // Ignoring tailwindcss
   if (debuggers.includes("-tailwindcss")) {
-    return false
+    return false;
   }
 
   // Including tailwindcss
   if (debuggers.includes("tailwindcss")) {
-    return true
+    return true;
   }
 
-  return false
+  return false;
 }
