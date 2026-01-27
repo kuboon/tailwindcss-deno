@@ -1,0 +1,22 @@
+{
+  "name": "@kuboon/tailwindcss-deno",
+  "version": "0.1.0",
+  "exports": "./src/index.ts",
+  "imports": {
+    "@deno/loader": "jsr:@deno/loader@^0.1.0",
+    "@std/path": "jsr:@std/path@^1.0.0",
+    "@std/fs": "jsr:@std/fs@^1.0.0",
+    "@jridgewell/remapping": "npm:@jridgewell/remapping@^2.3.4",
+    "lightningcss": "npm:lightningcss@^1.28.3",
+    "magic-string": "npm:magic-string@^0.30.21",
+    "source-map-js": "npm:source-map-js@^1.2.1",
+    "tailwindcss": "npm:tailwindcss@^4.1.0"
+  },
+  "tasks": {
+    "dev": "deno run --watch src/index.ts",
+    "test": "deno test --allow-read --allow-env"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window", "esnext"]
+  }
+}
