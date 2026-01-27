@@ -9,7 +9,9 @@ import { normalizePath } from "./normalize-path.ts"
 
 const cssUrlRE =
   /(?<!@import\s+)(?<=^|[^\w\-\u0080-\uffff])url\((\s*('[^']+'|"[^"]+")\s*|[^'")]+)\)/
-const cssImageSetRE = /(?<=image-set\()((?:[\w-]{1,256}\([^)]*\)|[^)])*)(?=\))/
+// Note: Simplified regex to avoid ReDoS vulnerability
+// Original pattern had nested quantifiers that could cause exponential backtracking
+const cssImageSetRE = /(?<=image-set\()([^)]+)(?=\))/
 const cssNotProcessedRE = /(?:gradient|element|cross-fade|image)\(/
 
 const dataUrlRE = /^\s*data:/i
