@@ -1,0 +1,19 @@
+# Deno
+.deno/
+deno.lock
+
+# Build artifacts
+dist/
+build/
+
+# Temporary files
+tmp/
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
