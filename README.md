@@ -33,20 +33,24 @@ import { compile } from "jsr:@kuboon/tailwindcss-deno";
 ## Usage
 
 ### Basic Compilation
+! important notice
+You need to write `@import "tailwindcss/style.css";` because `@deno/loader` can not get [this](https://github.com/tailwindlabs/tailwindcss/blob/e3e85b364fc62a19b97a4250854580132e7967c7/packages/tailwindcss/package.json#L19-L25) `exports.style` setting.
 
 ```typescript
 import { compile } from "@kuboon/tailwindcss-deno";
 
 const css = `
-  @import "tailwindcss";
+  @import "tailwindcss/style.css";
 `;
 
-const result = await compile(css, {
+const compiler = await compile(css, {
   base: Deno.cwd(),
   onDependency: (path) => {
     console.log("Dependency:", path);
   },
 });
+const output = compiler.build(["flex"])
+Deno.writeTextFileSync("style.css", output)
 ```
 
 ### Module Loading
@@ -85,7 +89,7 @@ console.log(sourceMap.inline); // Inline base64 source map
 
 ### `compile(css, options)`
 
-Compiles Tailwind CSS with the given options.
+Returns Tailwind CSS compiler with the given options.
 
 **Options:**
 
@@ -131,9 +135,6 @@ Normalizes file paths across platforms.
 ```bash
 # Run tests
 deno task test
-
-# Watch mode
-deno task dev
 ```
 
 ## License
