@@ -38,7 +38,7 @@ export class Instrumentation implements Disposable {
   }[] = [];
 
   constructor(
-    private defaultFlush = (message: string) => {
+    private defaultFlush = (message: string): void => {
       const encoder = new TextEncoder();
       Deno.stderr.writeSync(encoder.encode(`${message}\n`));
     },

@@ -1,18 +1,9 @@
 import { SourceMapGenerator } from "source-map-js";
+import type { DecodedSourceMap } from "tailwindcss";
+import { encodeBase64 } from "@std/encoding"
 
-// Type definitions for source maps
-export interface DecodedSourceMap {
-  mappings: Array<{
-    generatedPosition: { line: number; column: number };
-    originalPosition?: { line: number; column: number };
-    name?: string;
-  }>;
-}
-
-export interface DecodedSource {
-  url: string;
-  content: string;
-}
+export type { DecodedSourceMap };
+type DecodedSource = DecodedSourceMap["sources"][0];
 
 export interface SourceMap {
   readonly raw: string;
@@ -20,19 +11,21 @@ export interface SourceMap {
   comment(url: string): string;
 }
 
-class DefaultMap<K, V> extends Map<K, V> {
-  constructor(private factory: (key: K) => V) {
+class DefaultMap<T = string, V = unknown> extends Map<T, V> {
+  constructor(private factory: (key: T, self: DefaultMap<T, V>) => V) {
     super();
   }
+  override get(key: T): V {
+    let value = super.get(key);
 
-  override get(key: K): V {
-    if (!this.has(key)) {
-      this.set(key, this.factory(key));
+    if (value === undefined) {
+      value = this.factory(key, this);
+      this.set(key, value);
     }
-    return super.get(key)!;
+
+    return value;
   }
 }
-
 function serializeSourceMap(map: DecodedSourceMap): string {
   const generator = new SourceMapGenerator();
 
@@ -51,9 +44,7 @@ function serializeSourceMap(map: DecodedSourceMap): string {
   });
 
   for (const mapping of map.mappings) {
-    const original = sourceTable.get(
-      (mapping.originalPosition as any)?.source ?? null,
-    );
+    const original = sourceTable.get(mapping.originalPosition?.source ?? null);
 
     generator.addMapping({
       generated: mapping.generatedPosition,
@@ -78,9 +69,7 @@ export function toSourceMap(map: DecodedSourceMap | string): SourceMap {
   return {
     raw,
     get inline() {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(raw);
-      const base64 = btoa(String.fromCharCode(...data));
+      const base64 = encodeBase64(raw);
       return comment(`data:application/json;base64,${base64}`);
     },
     comment,

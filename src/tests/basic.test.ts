@@ -2,8 +2,8 @@ import { normalizePath } from "../normalize-path.ts";
 import * as env from "../env.ts";
 import { Instrumentation } from "../instrumentation.ts";
 import {
-  compile,
   type __unstable__loadDesignSystem,
+  compile,
   loadModule,
 } from "../compile.ts";
 
@@ -67,16 +67,19 @@ Deno.test("compile - basic compilation", async () => {
     },
   };
 
-  const compiler = await compile("@import 'tailwindcss/index.css'; @plugin 'daisyui'", options);
+  const compiler = await compile(
+    "@import 'tailwindcss/index.css'; @plugin 'daisyui'",
+    options,
+  );
   const built = compiler.build(["flex"]);
   assertStringIncludes(built, "display: flex");
 });
 
 Deno.test("loadModule - loads a module", async () => {
   const dependencies: string[] = [];
-  const testModulePath = "./normalize-path.ts";
-  const baseDir = `${Deno.cwd()}/src/`;
-  
+  const testModulePath = "./module.ts";
+  const baseDir = `${Deno.cwd()}/src/tests/`;
+
   const result = await loadModule(
     testModulePath,
     baseDir,
@@ -84,13 +87,13 @@ Deno.test("loadModule - loads a module", async () => {
       dependencies.push(path);
     },
   );
-  
+
   // Should return module information
   assertExists(result);
   assertExists(result.path);
   assertExists(result.base);
   assertExists(result.module);
-  
+
   // Should have loaded the normalizePath function
-  assertEquals(typeof result.module.normalizePath, "function");
+  assertEquals(typeof result.module.content, "function");
 });

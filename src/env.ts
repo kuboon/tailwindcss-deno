@@ -1,5 +1,5 @@
 // Deno native environment variable access
-export const DEBUG = resolveDebug(Deno.env.get("DEBUG"));
+export const DEBUG: boolean = resolveDebug(Deno.env.get("DEBUG"));
 
 function resolveDebug(debug: string | undefined): boolean {
   if (typeof debug === "boolean") {
@@ -29,7 +29,7 @@ function resolveDebug(debug: string | undefined): boolean {
     return true;
   }
 
-  let debuggers = debug.split(",").map((d) => d.split(":")[0]);
+  const debuggers = debug.split(",").map((d) => d.split(":")[0]);
 
   // Ignoring tailwindcss
   if (debuggers.includes("-tailwindcss")) {

@@ -34,7 +34,9 @@ try {
   });
   inst.end("optimize-css");
   console.log("  ✓ CSS optimized successfully");
-  console.log(`  length: from ${output.length} to ${result.code.length} characters`);
+  console.log(
+    `  length: from ${output.length} to ${result.code.length} characters`,
+  );
 } catch (error) {
   console.log(
     `  ⚠ Optimization skipped (requires lightningcss): ${
@@ -45,7 +47,6 @@ try {
 
 // Example 4: Instrumentation
 console.log("\n4. Performance Instrumentation:");
-
 
 console.log("  Collecting metrics...");
 inst.report((msg) => console.log(msg));

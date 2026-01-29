@@ -7,6 +7,7 @@ import {
   __unstable__loadDesignSystem as ___unstable__loadDesignSystem,
   compile as _compile,
   compileAst as _compileAst,
+  type Config,
   Features,
   Polyfills,
 } from "tailwindcss";
@@ -107,7 +108,10 @@ async function ensureSourceDetectionRootExists(compiler: {
  * @param options - Compilation options
  * @returns A compiler instance
  */
-export async function compileAst(ast: Parameters<typeof _compileAst>[0], options: CompileOptions) {
+export async function compileAst(
+  ast: Parameters<typeof _compileAst>[0],
+  options: CompileOptions,
+): Promise<Awaited<ReturnType<typeof _compileAst>>> {
   const compiler = await _compileAst(ast, createCompileOptions(options));
   await ensureSourceDetectionRootExists(compiler);
   return compiler;
@@ -120,7 +124,10 @@ export async function compileAst(ast: Parameters<typeof _compileAst>[0], options
  * @param options - Compilation options
  * @returns A compiler instance
  */
-export async function compile(css: string, options: CompileOptions) {
+export async function compile(
+  css: string,
+  options: CompileOptions,
+): Promise<Awaited<ReturnType<typeof _compile>>> {
   const compiler = await _compile(css, createCompileOptions(options));
   await ensureSourceDetectionRootExists(compiler);
   return compiler;
@@ -136,7 +143,7 @@ export async function compile(css: string, options: CompileOptions) {
 export async function __unstable__loadDesignSystem(
   css: string,
   { base }: { base: string },
-) {
+): Promise<Awaited<ReturnType<typeof ___unstable__loadDesignSystem>>> {
   return await ___unstable__loadDesignSystem(css, {
     base,
     loadModule(id, base) {
@@ -153,7 +160,7 @@ export async function loadModule(
   base: string,
   onDependency: (path: string) => void,
   customJsResolver?: Resolver,
-) {
+): Promise<{ path: string; base: string; module: Config }> {
   if (id[0] !== ".") {
     const resolvedPath = await resolveJsId(id, base, customJsResolver);
     if (!resolvedPath) {
@@ -161,10 +168,11 @@ export async function loadModule(
     }
 
     const module = await importModule(toFileUrl(resolvedPath).href);
+    const moduleWithDefault = module as Config & { default?: Config };
     return {
       path: resolvedPath,
       base: dirname(resolvedPath),
-      module: module.default ?? module,
+      module: moduleWithDefault.default ?? module,
     };
   }
 
@@ -184,7 +192,7 @@ export async function loadModule(
   return {
     path: resolvedPath,
     base: dirname(resolvedPath),
-    module: (module as {default?: unknown}).default ?? module,
+    module: (module as { default?: unknown }).default ?? module,
   };
 }
 
@@ -210,7 +218,7 @@ async function loadStylesheet(
 }
 
 // Use Deno native dynamic import or @deno/loader
-async function importModule(path: string): Promise<any> {
+async function importModule(path: string): Promise<Config> {
   try {
     return await import(path);
   } catch (error) {
@@ -284,8 +292,7 @@ async function resolveJsId(
   // Use @deno/loader for JS/TS resolution
   try {
     const ws = await getWorkspace();
-    const loader = await ws.createLoader(
-    );
+    const loader = await ws.createLoader();
 
     const resolved = await loader.resolve(
       id,
