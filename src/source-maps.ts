@@ -1,6 +1,6 @@
 import { SourceMapGenerator } from "source-map-js";
 import type { DecodedSourceMap } from "tailwindcss";
-import { encodeBase64 } from "@std/encoding"
+import { encodeBase64 } from "@std/encoding";
 
 export type { DecodedSourceMap };
 type DecodedSource = DecodedSourceMap["sources"][0];

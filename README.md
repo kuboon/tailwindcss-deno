@@ -33,8 +33,11 @@ import { compile } from "jsr:@kuboon/tailwindcss-deno";
 ## Usage
 
 ### Basic Compilation
-! important notice
-You need to write `@import "tailwindcss/style.css";` because `@deno/loader` can not get [this](https://github.com/tailwindlabs/tailwindcss/blob/e3e85b364fc62a19b97a4250854580132e7967c7/packages/tailwindcss/package.json#L19-L25) `exports.style` setting.
+
+! important notice You need to write `@import "tailwindcss/style.css";` because
+`@deno/loader` can not get
+[this](https://github.com/tailwindlabs/tailwindcss/blob/e3e85b364fc62a19b97a4250854580132e7967c7/packages/tailwindcss/package.json#L19-L25)
+`exports.style` setting.
 
 ```typescript
 import { compile } from "@kuboon/tailwindcss-deno";
@@ -49,8 +52,8 @@ const compiler = await compile(css, {
     console.log("Dependency:", path);
   },
 });
-const output = compiler.build(["flex"])
-Deno.writeTextFileSync("style.css", output)
+const output = compiler.build(["flex"]);
+Deno.writeTextFileSync("style.css", output);
 ```
 
 ### Module Loading
