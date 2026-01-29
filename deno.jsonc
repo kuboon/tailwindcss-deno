@@ -15,8 +15,7 @@
     "tailwindcss": "npm:tailwindcss@^4.1.18"
   },
   "tasks": {
-    "dev": "deno run --watch src/index.ts",
-    "test": "deno test -P"
+    "test": "deno test -P --allow-read=.,$HOME/.cache/deno"
   },
   "compilerOptions": {
     "lib": ["deno.window", "esnext"]
@@ -24,11 +23,11 @@
   "permissions": {
     "default": {
       "read": {
-        "allow": [".", "/home/vscode/.cache/"],
+        "allow": [], // overwritten on cli option [".", "$HOME/.cache/deno"],
         "ignore": true
       },
       "env": {
-        "allow": ["DEBUG"],
+        "allow": ["DEBUG", "HOME"],
         "ignore": true
       },
       "sys": ["cpus", "networkInterfaces", "hostname"],
@@ -36,10 +35,7 @@
     }
   }, 
   "test": {
-    "permissions": {
-      "env": ["DEBUG"],
-      "read": ["."]
-    }
+    "permissions": "default"
   },
   "publish": {
     "include": [
