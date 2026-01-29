@@ -5,9 +5,20 @@ import { encodeBase64 } from "@std/encoding";
 export type { DecodedSourceMap };
 type DecodedSource = DecodedSourceMap["sources"][0];
 
+/**
+ * Interface for handling source maps.
+ */
 export interface SourceMap {
+  /** The raw source map JSON string */
   readonly raw: string;
+  /** The source map as an inline data URI comment */
   readonly inline: string;
+  /**
+   * Generates a source map comment pointing to the given URL.
+   *
+   * @param url - The URL where the source map is hosted
+   * @returns The source map comment
+   */
   comment(url: string): string;
 }
 
@@ -59,6 +70,12 @@ function serializeSourceMap(map: DecodedSourceMap): string {
   return generator.toString();
 }
 
+/**
+ * Converts a decoded source map into a usable SourceMap object.
+ *
+ * @param map - The decoded source map or raw JSON string
+ * @returns A SourceMap object with utilities
+ */
 export function toSourceMap(map: DecodedSourceMap | string): SourceMap {
   const raw = typeof map === "string" ? map : serializeSourceMap(map);
 

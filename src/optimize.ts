@@ -21,11 +21,23 @@ export interface OptimizeOptions {
   map?: string;
 }
 
+/**
+ * Result of the CSS transformation.
+ */
 export interface TransformResult {
+  /** The transformed CSS code */
   code: string;
+  /** The source map for the transformed CSS, if available */
   map: string | undefined;
 }
 
+/**
+ * Optimizes CSS output using Lightning CSS.
+ *
+ * @param input - The CSS string to optimize
+ * @param options - Optimization options
+ * @returns The optimized CSS and source map
+ */
 export function optimize(
   input: string,
   { file = "input.css", minify = false, map }: OptimizeOptions = {},

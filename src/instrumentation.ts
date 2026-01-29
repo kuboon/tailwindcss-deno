@@ -27,6 +27,9 @@ function performanceNow(): bigint {
   return BigInt(Math.floor(performance.now() * 1_000_000));
 }
 
+/**
+ * Performance instrumentation for measuring compilation times and counts.
+ */
 export class Instrumentation implements Disposable {
   #hits = new DefaultMap(() => ({ value: 0 }));
   #timers = new DefaultMap(() => ({ value: 0n }));
@@ -44,10 +47,20 @@ export class Instrumentation implements Disposable {
     },
   ) {}
 
+  /**
+   * Records a hit (count) for a specific label.
+   *
+   * @param label - The label to record a hit for
+   */
   hit(label: string) {
     this.#hits.get(label).value++;
   }
 
+  /**
+   * Starts a timer for a specific label.
+   *
+   * @param label - The label to start a timer for
+   */
   start(label: string) {
     const namespace = this.#timerStack.map((t) => t.label).join("//");
     const id = `${namespace}${namespace.length === 0 ? "" : "//"}${label}`;
@@ -60,6 +73,12 @@ export class Instrumentation implements Disposable {
     this.#timerStack.push({ id, label, namespace, value: performanceNow() });
   }
 
+  /**
+   * Ends the current timer for a specific label.
+   *
+   * @param label - The label to end the timer for (must match the current active timer)
+   * @throws Error if the label doesn't match the current active timer
+   */
   end(label: string) {
     const end = performanceNow();
 
@@ -76,12 +95,20 @@ export class Instrumentation implements Disposable {
     this.#timers.get(parent.id).value += elapsed;
   }
 
+  /**
+   * Resets all recorded measurements.
+   */
   reset() {
     this.#hits.clear();
     this.#timers.clear();
     this.#timerStack.splice(0);
   }
 
+  /**
+   * Reports the collected measurements.
+   *
+   * @param flush - Callback to output the report (defaults to writing to stderr)
+   */
   report(flush = this.defaultFlush) {
     const output: string[] = [];
     let hasHits = false;

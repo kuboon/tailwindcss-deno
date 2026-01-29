@@ -14,19 +14,36 @@ import {
 
 export { Features, Polyfills };
 
+/**
+ * Type definition for a custom module resolver function.
+ *
+ * @param id - The module identifier to resolve
+ * @param base - The base path to resolve from
+ * @returns The resolved path, false if ignored, or undefined if not found
+ */
 export type Resolver = (
   id: string,
   base: string,
 ) => Promise<string | false | undefined>;
 
+/**
+ * Options for configuring the Tailwind CSS compiler.
+ */
 export interface CompileOptions {
+  /** Base directory for resolving imports */
   base: string;
+  /** Source file path */
   from?: string;
+  /** Callback for each dependency found */
   onDependency: (path: string) => void;
+  /** Whether to rewrite URLs in CSS */
   shouldRewriteUrls?: boolean;
+  /** CSS polyfills to apply */
   polyfills?: Polyfills;
 
+  /** Custom CSS module resolver */
   customCssResolver?: Resolver;
+  /** Custom JS module resolver */
   customJsResolver?: Resolver;
 }
 
@@ -155,6 +172,15 @@ export async function __unstable__loadDesignSystem(
   });
 }
 
+/**
+ * Loads a module for Tailwind CSS configuration or plugins.
+ *
+ * @param id - The module identifier
+ * @param base - The base path
+ * @param onDependency - Callback for dependencies
+ * @param customJsResolver - Custom JS resolver
+ * @returns The loaded module
+ */
 export async function loadModule(
   id: string,
   base: string,
