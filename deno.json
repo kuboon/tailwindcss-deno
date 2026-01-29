@@ -24,7 +24,7 @@
   "permissions": {
     "default": {
       "read": {
-        "allow": [], // overwritten on cli option [".", "$HOME/.cache/deno"],
+        "allow": [],
         "ignore": true
       },
       "env": {
