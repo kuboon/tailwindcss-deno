@@ -20,7 +20,7 @@ jobs:
 
       - run: deno lint
       - run: deno check
-      - run: deno test -P
+      - run: deno task test
       - run: deno fmt --check
 
   release:
