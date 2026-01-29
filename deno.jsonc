@@ -1,7 +1,10 @@
 {
   "name": "@kuboon/tailwindcss-deno",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "exports": "./src/index.ts",
+  "tasks": {
+    "test": "deno test -P --allow-read=.,$HOME/.cache/deno"
+  },
   "imports": {
     "@deno/loader": "jsr:@deno/loader@^0.3.11",
     "@std/assert": "jsr:@std/assert@^1.0.17",
@@ -14,9 +17,6 @@
     "magic-string": "npm:magic-string@^0.30.21",
     "source-map-js": "npm:source-map-js@^1.2.1",
     "tailwindcss": "npm:tailwindcss@^4.1.18"
-  },
-  "tasks": {
-    "test": "deno test -P --allow-read=.,$HOME/.cache/deno"
   },
   "compilerOptions": {
     "lib": ["deno.window", "esnext"]
@@ -43,7 +43,7 @@
       "src/**/*.ts",
       "README.md",
       "LICENSE",
-      "deno.json"
+      "deno.jsonc"
     ],
     "exclude": [
       "src/tests/**",
