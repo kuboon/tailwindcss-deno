@@ -1,9 +1,10 @@
-
+// deno-lint-ignore-file no-import-prefix no-unversioned-import
 import { readFile } from "node:fs/promises";
-// deno-lint-ignore no-import-prefix
 import Context from "https://deno.land/std@0.200.0/wasi/snapshot_preview1.ts";
-// deno-lint-ignore no-import-prefix no-unversioned-import
-import { instantiateNapiModuleSync, getDefaultContext } from "npm:@napi-rs/wasm-runtime";
+import {
+  getDefaultContext,
+  instantiateNapiModuleSync,
+} from "npm:@napi-rs/wasm-runtime";
 import { fileURLToPath } from "node:url";
 
 // Note: Direct import like `import { ... } from "..."` does not work for this WASM module
@@ -13,22 +14,30 @@ import { fileURLToPath } from "node:url";
 // so we use `std/wasi` as a replacement.
 
 async function main() {
-
   let wasmUrl: string;
   try {
-      const pkgUrl = import.meta.resolve("npm:@tailwindcss/oxide-wasm32-wasi/package.json");
-      wasmUrl = pkgUrl.replace("package.json", "tailwindcss-oxide.wasm32-wasi.wasm");
+    const pkgUrl = import.meta.resolve(
+      "npm:@tailwindcss/oxide-wasm32-wasi/package.json",
+    );
+    wasmUrl = pkgUrl.replace(
+      "package.json",
+      "tailwindcss-oxide.wasm32-wasi.wasm",
+    );
   } catch (e) {
-      console.error("Could not resolve @tailwindcss/oxide-wasm32-wasi/package.json");
-      console.error("Make sure to cache the package: deno cache npm:@tailwindcss/oxide-wasm32-wasi");
-      throw e;
+    console.error(
+      "Could not resolve @tailwindcss/oxide-wasm32-wasi/package.json",
+    );
+    console.error(
+      "Make sure to cache the package: deno cache npm:@tailwindcss/oxide-wasm32-wasi",
+    );
+    throw e;
   }
 
   let wasmPath: string;
   if (wasmUrl.startsWith("file:")) {
-      wasmPath = fileURLToPath(wasmUrl);
+    wasmPath = fileURLToPath(wasmUrl);
   } else {
-      throw new Error("Resolved URL is not file protocol: " + wasmUrl);
+    throw new Error("Resolved URL is not file protocol: " + wasmUrl);
   }
 
   console.log(`Loading WASM from: ${wasmPath}`);
@@ -60,23 +69,23 @@ async function main() {
     wasi: wasi,
     // deno-lint-ignore no-explicit-any
     overwriteImports(importObject: any) {
-        importObject.env = {
-            ...importObject.env,
-            ...importObject.napi,
-            ...importObject.emnapi,
-            memory: sharedMemory,
-        };
-        return importObject;
+      importObject.env = {
+        ...importObject.env,
+        ...importObject.napi,
+        ...importObject.emnapi,
+        memory: sharedMemory,
+      };
+      return importObject;
     },
     // deno-lint-ignore no-explicit-any
     beforeInit({ instance }: { instance: WebAssembly.Instance } | any) {
-        // Manually trigger NAPI registration functions exported by the WASM
-        for (const name of Object.keys(instance.exports)) {
-            if (name.startsWith('__napi_register__')) {
-                // @ts-ignore: Manually trigger NAPI registration functions
-                instance.exports[name]();
-            }
+      // Manually trigger NAPI registration functions exported by the WASM
+      for (const name of Object.keys(instance.exports)) {
+        if (name.startsWith("__napi_register__")) {
+          // @ts-ignore: Manually trigger NAPI registration functions
+          instance.exports[name]();
         }
+      }
     },
   });
 
