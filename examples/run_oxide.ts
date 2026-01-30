@@ -1,6 +1,8 @@
 
 import { readFile } from "node:fs/promises";
+// deno-lint-ignore no-import-prefix
 import Context from "https://deno.land/std@0.200.0/wasi/snapshot_preview1.ts";
+// deno-lint-ignore no-import-prefix no-unversioned-import
 import { instantiateNapiModuleSync, getDefaultContext } from "npm:@napi-rs/wasm-runtime";
 import { fileURLToPath } from "node:url";
 
@@ -41,7 +43,7 @@ async function main() {
   });
 
   // Shim for @napi-rs/wasm-runtime which might expect `wasiImport` (Node.js style)
-  // @ts-ignore
+  // @ts-ignore: Shim for @napi-rs/wasm-runtime which might expect `wasiImport`
   wasi.wasiImport = wasi.exports;
 
   const apiContext = getDefaultContext();
@@ -69,7 +71,7 @@ async function main() {
         // Manually trigger NAPI registration functions exported by the WASM
         for (const name of Object.keys(instance.exports)) {
             if (name.startsWith('__napi_register__')) {
-                // @ts-ignore
+                // @ts-ignore: Manually trigger NAPI registration functions
                 instance.exports[name]();
             }
         }
