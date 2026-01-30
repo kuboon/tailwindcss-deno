@@ -1,4 +1,8 @@
 // Deno native environment variable access
+/**
+ * Indicates whether debug mode is enabled based on the DEBUG environment variable.
+ * Supports `DEBUG=*`, `DEBUG=tailwindcss`, and specific project debugging patterns.
+ */
 export const DEBUG: boolean = resolveDebug(Deno.env.get("DEBUG"));
 
 function resolveDebug(debug: string | undefined): boolean {

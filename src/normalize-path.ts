@@ -33,6 +33,12 @@ function normalizePathBase(path: string, stripTrailing?: boolean): string {
   return prefix + segs.join("/");
 }
 
+/**
+ * Normalizes a file path for consistent usage across platforms.
+ *
+ * @param originalPath - The path to normalize
+ * @returns The normalized path using forward slashes
+ */
 export function normalizePath(originalPath: string): string {
   const normalized = normalizePathBase(originalPath);
 
