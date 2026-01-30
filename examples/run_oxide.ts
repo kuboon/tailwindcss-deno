@@ -58,7 +58,8 @@ async function main() {
   const { napiModule } = instantiateNapiModuleSync(wasmBuffer, {
     context: apiContext,
     wasi: wasi,
-    overwriteImports(importObject) {
+    // deno-lint-ignore no-explicit-any
+    overwriteImports(importObject: any) {
         importObject.env = {
             ...importObject.env,
             ...importObject.napi,
@@ -67,7 +68,8 @@ async function main() {
         };
         return importObject;
     },
-    beforeInit({ instance }) {
+    // deno-lint-ignore no-explicit-any
+    beforeInit({ instance }: { instance: WebAssembly.Instance } | any) {
         // Manually trigger NAPI registration functions exported by the WASM
         for (const name of Object.keys(instance.exports)) {
             if (name.startsWith('__napi_register__')) {
