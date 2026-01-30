@@ -1,5 +1,7 @@
 # tailwindcss-deno
 
+[![JSR](https://jsr.io/badges/@kuboon/tailwindcss-deno)](https://jsr.io/@kuboon/tailwindcss-deno)
+
 A Deno-native port of `@tailwindcss/node` that provides Tailwind CSS compilation
 utilities using Deno's native APIs.
 
