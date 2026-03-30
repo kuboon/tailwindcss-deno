@@ -34,18 +34,71 @@ import { compile } from "jsr:@kuboon/tailwindcss-deno";
 
 ## Usage
 
+### Fresh 2 dev.ts (no vite config)
+```ts
+import { Builder } from "fresh/dev";
+import { Scanner } from "@tailwindcss/oxide";
+import { compile, toSourceMap } from "@kuboon/tailwindcss-deno";
+
+const base = Deno.cwd();
+const scanner = new Scanner({
+  sources: [
+    {
+      base,
+      pattern: "**/*",
+      negated: false,
+    },
+  ],
+});
+
+const builder = new Builder();
+
+builder.onTransformStaticFile({
+  pluginName: "tailwindcss-deno",
+  filter: /\.css$/,
+}, async (args) => {
+  const candidates = scanner.scan();
+
+  const compiler = await compile(args.text, { base });
+  return {
+    content: compiler.build(candidates),
+    map: toSourceMap(compiler.buildSourceMap()).inline,
+  };
+});
+
+if (Deno.args.includes("build")) {
+  // This creates a production build
+  await builder.build();
+} else {
+  // This starts a development server with live reload
+  await builder.listen(() => import("./main.ts"));
+}
+```
+
 ### Basic Compilation
 
-! important notice You need to write `@import "tailwindcss/style.css";` because
+! important notice You need to write `@import "tailwindcss/index.css";` because
 `@deno/loader` can not get
 [this](https://github.com/tailwindlabs/tailwindcss/blob/e3e85b364fc62a19b97a4250854580132e7967c7/packages/tailwindcss/package.json#L19-L25)
 `exports.style` setting.
 
 ```typescript
 import { compile } from "@kuboon/tailwindcss-deno";
+import { Scanner } from "@tailwindcss/oxide";
+
+const scanner = new Scanner({
+  sources: [
+    {
+      base: Deno.cwd(),
+      pattern: "**/*",
+      negated: false,
+    },
+  ],
+});
+const candidates = scanner.scan();
 
 const css = `
-  @import "tailwindcss/style.css";
+  @import "tailwindcss/index.css";
 `;
 
 const compiler = await compile(css, {
@@ -54,7 +107,7 @@ const compiler = await compile(css, {
     console.log("Dependency:", path);
   },
 });
-const output = compiler.build(["flex"]);
+const output = compiler.build(candidates);
 Deno.writeTextFileSync("style.css", output);
 ```
 
@@ -86,6 +139,7 @@ console.log(result.code);
 ```typescript
 import { toSourceMap } from "@kuboon/tailwindcss-deno";
 
+const decodedMap = compiler.
 const sourceMap = toSourceMap(decodedMap);
 console.log(sourceMap.inline); // Inline base64 source map
 ```
