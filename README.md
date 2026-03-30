@@ -35,6 +35,7 @@ import { compile } from "jsr:@kuboon/tailwindcss-deno";
 ## Usage
 
 ### Fresh 2 dev.ts (no vite config)
+
 ```ts
 import { Builder } from "fresh/dev";
 import { Scanner } from "@tailwindcss/oxide";
