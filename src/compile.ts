@@ -193,7 +193,7 @@ export async function loadModule(
       throw new Error(`Could not resolve '${id}' from '${base}'`);
     }
 
-    const module = await importModule(toFileUrl(resolvedPath).href);
+    const module = await importModule(toModuleUrl(resolvedPath).href);
     const moduleWithDefault = module as Config & { default?: Config };
     return {
       path: resolvedPath,
@@ -207,8 +207,12 @@ export async function loadModule(
     throw new Error(`Could not resolve '${id}' from '${base}'`);
   }
 
+  // Bust the module cache so edits to a config/plugin are picked up on rebuild
+  const url = toModuleUrl(resolvedPath);
+  url.searchParams.set("id", String(Date.now()));
+
   const [module, moduleDependencies] = await Promise.all([
-    importModule(toFileUrl(resolvedPath).href + "?id=" + Date.now()),
+    importModule(url.href),
     getModuleDependencies(resolvedPath),
   ]);
 
@@ -243,25 +247,65 @@ async function loadStylesheet(
   };
 }
 
-// Use Deno native dynamic import or @deno/loader
-async function importModule(path: string): Promise<Config> {
+/**
+ * Turn a resolution result into the URL to import it from.
+ *
+ * `resolveJsId` returns a local path for `file:` modules, but hands back the
+ * URL itself for anything else (`https:`, ...), which `toFileUrl` rejects.
+ */
+function toModuleUrl(resolvedPath: string): URL {
+  return resolvedPath.includes("://")
+    ? new URL(resolvedPath)
+    : toFileUrl(resolvedPath);
+}
+
+/**
+ * Import a module that `resolveJsId` already resolved.
+ *
+ * `deno publish` reports this dynamic import as `unanalyzable-dynamic-import`,
+ * warning that specifiers coming from the local import map stop working once
+ * the package is published. That does not apply here: the specifier is always
+ * an absolute URL built by `toModuleUrl`, so it never goes through this
+ * package's import map. The check below keeps it that way.
+ */
+async function importModule(url: string): Promise<Config> {
+  if (!url.includes("://")) {
+    throw new Error(`Expected an absolute URL to import, got '${url}'`);
+  }
+
   try {
-    return await import(path);
+    return await import(url);
   } catch (error) {
     // For TypeScript files or special module formats, try with import maps
-    console.error(`Failed to import ${path}:`, error);
+    console.error(`Failed to import ${url}:`, error);
     throw error;
   }
 }
 
 // Create a Deno loader workspace for module resolution
 let workspace: Workspace | null = null;
+let cssWorkspace: Workspace | null = null;
 
 function getWorkspace() {
   if (!workspace) {
     workspace = new Workspace();
   }
   return workspace;
+}
+
+/**
+ * Workspace used to resolve stylesheets.
+ *
+ * CSS has to be resolved under the `style` export condition, the same one
+ * Tailwind's own resolver uses. Without it `@import "tailwindcss"` picks the
+ * `import` condition and lands on the JavaScript entrypoint (`dist/lib.mjs`),
+ * which then fails to parse as CSS.
+ */
+function getCssWorkspace() {
+  if (!cssWorkspace) {
+    cssWorkspace = new Workspace({ nodeConditions: ["style"] });
+  }
+  return cssWorkspace;
 }
 
 /**
@@ -318,7 +362,7 @@ async function resolveCssId(
 
   // Use @deno/loader for CSS resolution
   try {
-    const ws = await getWorkspace();
+    const ws = await getCssWorkspace();
     const loader = await ws.createLoader();
 
     const resolved = await loader.resolve(
