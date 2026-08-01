@@ -1,4 +1,4 @@
-import { dirname } from "@std/path";
+import { dirname, join } from "@std/path";
 import { toFileUrl } from "@std/path/to-file-url";
 import { ResolutionMode, Workspace } from "@deno/loader";
 import { DEBUG } from "./env.ts";
@@ -103,9 +103,8 @@ async function ensureSourceDetectionRootExists(compiler: {
 
     let exists = false;
     try {
-      const stat = await Deno.stat(
-        dirname(compiler.root.base) + "/" + basePath.join("/"),
-      );
+      // `root.base` is the directory of the stylesheet that declared `source()`
+      const stat = await Deno.stat(join(compiler.root.base, ...basePath));
       exists = stat.isDirectory;
     } catch {
       exists = false;
@@ -266,6 +265,22 @@ function getWorkspace() {
 }
 
 /**
+ * Turn a base *directory* into the referrer URL to resolve against.
+ *
+ * `base` is always a directory (`compile()` takes one, and `loadModule` /
+ * `loadStylesheet` hand back `dirname(resolvedPath)`), but a `file:` URL
+ * without a trailing slash is a file: resolving `./a.css` against
+ * `file:///project` yields `file:///a.css` instead of `file:///project/a.css`.
+ */
+function toBaseUrl(base: string): URL {
+  const url = toFileUrl(base);
+  if (!url.pathname.endsWith("/")) {
+    url.pathname += "/";
+  }
+  return url;
+}
+
+/**
  * Report a @deno/loader failure that the file system fallback recovered from.
  *
  * The fallback keeps compilation going, but the original error is the only
@@ -308,7 +323,7 @@ async function resolveCssId(
 
     const resolved = await loader.resolve(
       id,
-      toFileUrl(base).href,
+      toBaseUrl(base).href,
       ResolutionMode.Import,
     );
     if (resolved) {
@@ -316,7 +331,7 @@ async function resolveCssId(
     }
   } catch (error) {
     // Fall back to simple file resolution
-    const simplePath = dirname(base) + "/" + id;
+    const simplePath = join(base, id);
     try {
       await Deno.stat(simplePath);
     } catch {
@@ -348,7 +363,7 @@ async function resolveJsId(
 
     const resolved = await loader.resolve(
       id,
-      toFileUrl(base).href,
+      toBaseUrl(base).href,
       ResolutionMode.Import,
     );
     if (resolved) {
@@ -362,7 +377,7 @@ async function resolveJsId(
   } catch (error) {
     // Fall back to simple file resolution for relative paths
     if (id.startsWith(".")) {
-      const simplePath = dirname(base) + "/" + id;
+      const simplePath = join(base, id);
       // The bare path first, then the same path with common extensions
       const candidates = [
         simplePath,
