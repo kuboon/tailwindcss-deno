@@ -7,7 +7,13 @@ import {
   loadModule,
 } from "../compile.ts";
 
-import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import {
+  assertEquals,
+  assertExists,
+  assertInstanceOf,
+  assertRejects,
+  assertStringIncludes,
+} from "@std/assert";
 
 Deno.test("normalizePath - basic paths", () => {
   assertEquals(normalizePath("./foo/bar"), "./foo/bar");
@@ -96,4 +102,17 @@ Deno.test("loadModule - loads a module", async () => {
 
   // Should have loaded the normalizePath function
   assertEquals(typeof result.module.content, "function");
+});
+
+Deno.test("loadModule - keeps the @deno/loader failure as `cause`", async () => {
+  const id = "@not-a-real-scope/not-a-real-package";
+  const error = await assertRejects(
+    () => loadModule(id, `${Deno.cwd()}/src/tests/`, () => {}),
+    Error,
+    `Could not resolve '${id}'`,
+  );
+
+  // The reason the loader refused the specifier must not be swallowed
+  assertInstanceOf(error.cause, Error);
+  assertStringIncludes(error.cause.message, id);
 });

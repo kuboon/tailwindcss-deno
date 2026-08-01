@@ -1,6 +1,7 @@
 import { dirname } from "@std/path";
 import { toFileUrl } from "@std/path/to-file-url";
 import { ResolutionMode, Workspace } from "@deno/loader";
+import { DEBUG } from "./env.ts";
 import { getModuleDependencies } from "./get-module-dependencies.ts";
 import { rewriteUrls } from "./urls.ts";
 import {
@@ -264,6 +265,30 @@ function getWorkspace() {
   return workspace;
 }
 
+/**
+ * Report a @deno/loader failure that the file system fallback recovered from.
+ *
+ * The fallback keeps compilation going, but the original error is the only
+ * place that explains *why* the loader refused the specifier (a version blocked
+ * by `minimumDependencyAge`, a missing lockfile entry, ...), so it is logged
+ * instead of dropped.
+ */
+function debugLoaderFallback(id: string, base: string, cause: unknown): void {
+  if (!DEBUG) return;
+  console.warn(
+    `@deno/loader could not resolve '${id}' from '${base}', falling back to file system resolution:`,
+    cause,
+  );
+}
+
+/**
+ * Build the error for a specifier that neither @deno/loader nor the file system
+ * fallback could resolve, keeping the loader failure as `cause`.
+ */
+function unresolvedError(id: string, base: string, cause: unknown): Error {
+  return new Error(`Could not resolve '${id}' from '${base}'`, { cause });
+}
+
 async function resolveCssId(
   id: string,
   base: string,
@@ -289,15 +314,16 @@ async function resolveCssId(
     if (resolved) {
       return new URL(resolved).pathname;
     }
-  } catch {
+  } catch (error) {
     // Fall back to simple file resolution
     const simplePath = dirname(base) + "/" + id;
     try {
       await Deno.stat(simplePath);
-      return simplePath;
     } catch {
-      return undefined;
+      throw unresolvedError(id, base, error);
     }
+    debugLoaderFallback(id, base, error);
+    return simplePath;
   }
 
   return undefined;
@@ -333,25 +359,31 @@ async function resolveJsId(
       }
       return resolved;
     }
-  } catch {
+  } catch (error) {
     // Fall back to simple file resolution for relative paths
     if (id.startsWith(".")) {
       const simplePath = dirname(base) + "/" + id;
-      try {
-        await Deno.stat(simplePath);
-        return simplePath;
-      } catch {
-        // Try with common extensions
-        for (const ext of [".ts", ".js", ".tsx", ".jsx", ".mts", ".mjs"]) {
-          try {
-            await Deno.stat(simplePath + ext);
-            return simplePath + ext;
-          } catch {
-            // Continue trying
-          }
+      // The bare path first, then the same path with common extensions
+      const candidates = [
+        simplePath,
+        ...[".ts", ".js", ".tsx", ".jsx", ".mts", ".mjs"].map((ext) =>
+          simplePath + ext
+        ),
+      ];
+
+      for (const candidate of candidates) {
+        try {
+          await Deno.stat(candidate);
+        } catch {
+          // Not this one, keep trying
+          continue;
         }
+        debugLoaderFallback(id, base, error);
+        return candidate;
       }
     }
+
+    throw unresolvedError(id, base, error);
   }
 
   return undefined;
