@@ -284,12 +284,28 @@ async function importModule(url: string): Promise<Config> {
 
 // Create a Deno loader workspace for module resolution
 let workspace: Workspace | null = null;
+let cssWorkspace: Workspace | null = null;
 
 function getWorkspace() {
   if (!workspace) {
     workspace = new Workspace();
   }
   return workspace;
+}
+
+/**
+ * Workspace used to resolve stylesheets.
+ *
+ * CSS has to be resolved under the `style` export condition, the same one
+ * Tailwind's own resolver uses. Without it `@import "tailwindcss"` picks the
+ * `import` condition and lands on the JavaScript entrypoint (`dist/lib.mjs`),
+ * which then fails to parse as CSS.
+ */
+function getCssWorkspace() {
+  if (!cssWorkspace) {
+    cssWorkspace = new Workspace({ nodeConditions: ["style"] });
+  }
+  return cssWorkspace;
 }
 
 /**
@@ -346,7 +362,7 @@ async function resolveCssId(
 
   // Use @deno/loader for CSS resolution
   try {
-    const ws = await getWorkspace();
+    const ws = await getCssWorkspace();
     const loader = await ws.createLoader();
 
     const resolved = await loader.resolve(

@@ -81,6 +81,17 @@ Deno.test("compile - basic compilation", async () => {
   assertStringIncludes(built, "display: flex");
 });
 
+Deno.test("compile - resolves a bare package to its CSS entrypoint", async () => {
+  // `tailwindcss` exports `index.css` under the `style` condition and
+  // `dist/lib.mjs` under `import`; a stylesheet must get the former
+  const compiler = await compile(`@import "tailwindcss";`, {
+    base: Deno.cwd(),
+    onDependency: () => {},
+  });
+
+  assertStringIncludes(compiler.build(["flex"]), "display: flex");
+});
+
 Deno.test("compile - resolves relative imports against the base directory", async () => {
   const dependencies: string[] = [];
   // No trailing slash: `base` is a directory, not a file
