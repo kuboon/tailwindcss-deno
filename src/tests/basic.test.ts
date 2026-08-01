@@ -7,7 +7,13 @@ import {
   loadModule,
 } from "../compile.ts";
 
-import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import {
+  assertEquals,
+  assertExists,
+  assertInstanceOf,
+  assertRejects,
+  assertStringIncludes,
+} from "@std/assert";
 
 Deno.test("normalizePath - basic paths", () => {
   assertEquals(normalizePath("./foo/bar"), "./foo/bar");
@@ -75,6 +81,58 @@ Deno.test("compile - basic compilation", async () => {
   assertStringIncludes(built, "display: flex");
 });
 
+Deno.test("compile - resolves relative imports against the base directory", async () => {
+  const dependencies: string[] = [];
+  // No trailing slash: `base` is a directory, not a file
+  const options = {
+    base: Deno.cwd(),
+    onDependency: (path: string) => {
+      dependencies.push(path);
+    },
+  };
+
+  const compiler = await compile(
+    `@import "./src/tests/fixtures/a.css";`,
+    options,
+  );
+
+  // a.css imports ./nested/b.css relative to its own directory
+  assertStringIncludes(compiler.build([]), "rebeccapurple");
+  assertEquals(
+    dependencies.some((path) => path.endsWith("/src/tests/fixtures/a.css")),
+    true,
+  );
+  assertEquals(
+    dependencies.some((path) =>
+      path.endsWith("/src/tests/fixtures/nested/b.css")
+    ),
+    true,
+  );
+});
+
+Deno.test("compile - resolves source() against the base directory", async () => {
+  const compiler = await compile(
+    `@import "tailwindcss/index.css" source("./src/tests/fixtures");`,
+    { base: Deno.cwd(), onDependency: () => {} },
+  );
+
+  assertEquals(compiler.root, {
+    base: Deno.cwd(),
+    pattern: "./src/tests/fixtures",
+  });
+
+  // A directory that really is missing must still be rejected
+  await assertRejects(
+    () =>
+      compile(`@import "tailwindcss/index.css" source("./no-such-dir");`, {
+        base: Deno.cwd(),
+        onDependency: () => {},
+      }),
+    Error,
+    "does not exist or is not a directory",
+  );
+});
+
 Deno.test("loadModule - loads a module", async () => {
   const dependencies: string[] = [];
   const testModulePath = "./module.ts";
@@ -96,4 +154,17 @@ Deno.test("loadModule - loads a module", async () => {
 
   // Should have loaded the normalizePath function
   assertEquals(typeof result.module.content, "function");
+});
+
+Deno.test("loadModule - keeps the @deno/loader failure as `cause`", async () => {
+  const id = "@not-a-real-scope/not-a-real-package";
+  const error = await assertRejects(
+    () => loadModule(id, `${Deno.cwd()}/src/tests/`, () => {}),
+    Error,
+    `Could not resolve '${id}'`,
+  );
+
+  // The reason the loader refused the specifier must not be swallowed
+  assertInstanceOf(error.cause, Error);
+  assertStringIncludes(error.cause.message, id);
 });
